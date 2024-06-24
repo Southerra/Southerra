@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Melda'nın Balon Patlatma Oyunu</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Baloo+2&display=swap');
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(#87CEEB, #f0f8ff);
+            overflow: hidden;
+            position: relative;
+        }
+        h1 {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff69b4;
+            font-family: 'Baloo 2', cursive;
+            font-size: 3em;
+        }
+        .score {
+            position: fixed;
+            top: 10px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 1.5em;
+        }
+        .balloon {
+            position: absolute;
+            cursor: pointer;
+            transform-origin: center;
+            transition: transform 0.2s ease-out, opacity 0.2s;
+        }
+        .balloon img {
+            width: 100%;
+            height: auto;
+            transition: transform 0.2s ease-out, opacity 0.2s;
+        }
+        .popped img {
+            transform: scale(0);
+            opacity: 0;
+        }
+        .pop {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: url('https://image.freepik.com/free-vector/explosion-comic-style_24908-51205.jpg') center/cover no-repeat;
+            pointer-events: none;
+            animation: pop 0.3s forwards ease-out;
+        }
+        @keyframes pop {
+            0% {
+                transform: scale(0);
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        .bottom-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background-color: red;
+            z-index: 0;
+        }
+        #pauseButton {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            padding: 10px 20px;
+            background-color: #ff69b4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            z-index: 1;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Meldamm</h1>
+    <div class="score">Skor: 0</div>
+    <div class="bottom-line"></div>
+    <button id="pauseButton" onclick="toggleGame()">Duraklat</button>
+    <script>
+        let score = 0;
+        let gameStarted = false;
+        let paused = false;
+        const scoreDisplay = document.querySelector('.score');
+        const bottomLine = document.querySelector('.bottom-line');
+        const pauseButton = document.getElementById('pauseButton');
+
+        function updateScore(amount) {
+            score += amount;
+            scoreDisplay.textContent = `Skor: ${score}`;
+        }
+
+        function createBalloon() {
+            if (!gameStarted || paused) return;
+
+            const balloon = document.createElement('div');
+            const size = Math.random() * 50 + 50;
+            const x = Math.random() * (window.innerWidth - size);
+            const startY = -size;
+            const endY = window.innerHeight + size;
+            const speed = Math.random() * 5 + 1;
+
+            balloon.classList.add('balloon');
+            balloon.innerHTML = `<img src="https://emojicdn.elk.sh/🎈" alt="Balloon">`;
+            balloon.style.width = `${size}px`;
+            balloon.style.height = `${size}px`;
+            balloon.style.left = `${x}px`;
+            balloon.style.top = `${startY}px`;
+
+            balloon.addEventListener('touchstart', () => {
+                balloon.classList.add('popped');
+                const pop = document.createElement('div');
+                pop.classList.add('pop');
+                pop.style.left = `${x}px`;
+                pop.style.top = `${startY}px`;
+                document.body.appendChild(pop);
+                requestAnimationFrame(() => {
+                    pop.remove();
+                    balloon.remove();
+                    updateScore(1);
+                });
+            });
+
+            document.body.appendChild(balloon);
+
+            function moveBalloon() {
+                const currentY = parseFloat(balloon.style.top);
+                if (currentY < endY) {
+                    balloon.style.top = `${currentY + speed}px`;
+                    requestAnimationFrame(moveBalloon);
+                } else {
+                    balloon.remove();
+                }
+            }
+
+            moveBalloon();
+        }
+
+        function startGame() {
+            score = 0;
+            updateScore(0);
+            gameStarted = true;
+            setInterval(createBalloon, 1000);
+            pauseButton.style.display = 'block';
+        }
+
+        function endGame() {
+            gameStarted = false;
+            pauseButton.style.display = 'none';
+        }
+
+        function toggleGame() {
+            paused = !paused;
+            pauseButton.textContent = paused ? 'Devam Et' : 'Duraklat';
+        }
+
+        startGame(); // Otomatik olarak oyunu başlat
+    </script>
+</body>
+</html>
